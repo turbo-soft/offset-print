@@ -1,0 +1,160 @@
+# Sveltia CMS configuration for Offset Print.
+# Schema mirrors src/content.config.ts 1:1 — keep them in sync.
+
+backend:
+  name: github
+  repo: REPLACE_ME_OWNER/offset-print-site
+  branch: main
+  base_url: https://REPLACE_ME_WORKER.workers.dev
+  auth_endpoint: oauth/auth
+
+# When served from localhost, Sveltia uses a local proxy
+# (run `npx @sveltia/cms-proxy-server` alongside `npm run dev`).
+local_backend: true
+
+site_url: https://offsetprint.eu
+display_url: https://offsetprint.eu
+logo_url: /favicon.svg
+
+media_folder: public/uploads
+public_folder: /uploads
+
+# Cap uploads at ~2400px wide WebP. The resize-uploads.yml Action
+# is the backstop in case a customer bypasses this in the browser.
+media_library:
+  config:
+    max_file_size: 5242880  # 5 MB hard cap
+    transformations:
+      raster_image:
+        format: webp
+        quality: 85
+        width: 2400
+
+editor:
+  preview: false  # disable preview to keep the UI obvious for non-technical editors
+
+collections:
+  - name: pages
+    label: Pages
+    description: Fixed pages of the site. Edit text and images; structure is locked.
+    files:
+      - name: home
+        label: Home
+        file: src/content/pages/home.md
+        fields:
+          - { name: hero_image, label: Hero image, widget: image }
+          - { name: hero_image_alt, label: Hero image alt text, widget: string }
+          - { name: hero_tagline, label: Hero tagline, widget: string }
+          - name: hero_metadata
+            label: Hero metadata strip (green bar)
+            widget: list
+            hint: "Small label + value pairs shown below the hero image. 4 items fit best; more will wrap to a second row."
+            fields:
+              - { name: label, label: Label (e.g. Founded), widget: string }
+              - { name: value, label: Value (e.g. 1990), widget: string }
+          - { name: intro_heading, label: Intro heading, widget: string }
+          - { name: intro_subheading, label: Intro sub-heading, widget: string }
+          - { name: intro_body, label: Intro paragraph, widget: text }
+          - name: cta_links
+            label: Call-to-action links
+            widget: list
+            fields:
+              - { name: label, label: Label, widget: string }
+              - { name: href, label: Link, widget: string }
+          - { name: seo, label: SEO, widget: object, required: false, fields: [
+              { name: title, label: Title, widget: string, required: false },
+              { name: description, label: Description, widget: text, required: false },
+              { name: og_image, label: OG image, widget: image, required: false }
+            ] }
+
+      - name: about
+        label: About
+        file: src/content/pages/about.md
+        fields:
+          - { name: hero_image, label: Sidebar image (e.g. FSC badge), widget: image, required: false }
+          - { name: hero_image_alt, label: Sidebar image alt text, widget: string, required: false }
+          - { name: history_heading, label: Page heading, widget: string }
+          - { name: intro_quote, label: Pull quote, widget: text, required: false }
+          - { name: intro_quote_author, label: Quote author, widget: string, required: false }
+          - { name: history_text, label: History paragraph, widget: text }
+          - { name: facility_text, label: Facility paragraph, widget: text }
+          - { name: staff_count, label: Staff count, widget: number, value_type: int }
+          - { name: certifications, label: Certifications, widget: list, field: { name: cert, label: Certification, widget: string } }
+          - { name: env_heading, label: Environmental heading, widget: string }
+          - { name: env_text, label: Environmental paragraph, widget: text }
+          - { name: business_policy_heading, label: Policy section heading, widget: string, required: false, default: "Politika poslovanja" }
+          - name: documents
+            label: Downloadable documents (PDFs)
+            widget: list
+            required: false
+            fields:
+              - { name: label, label: Label shown under icon, widget: string }
+              - { name: file, label: PDF file, widget: file }
+          - { name: seo, label: SEO, widget: object, required: false, fields: [
+              { name: title, label: Title, widget: string, required: false },
+              { name: description, label: Description, widget: text, required: false },
+              { name: og_image, label: OG image, widget: image, required: false }
+            ] }
+
+      - name: products_page
+        label: Products page
+        file: src/content/pages/products.md
+        fields:
+          - { name: intro_heading, label: Heading, widget: string }
+          - { name: intro_text, label: Intro paragraph, widget: text }
+          - { name: fsc_callout, label: FSC callout, widget: string }
+          - { name: seo, label: SEO, widget: object, required: false, fields: [
+              { name: title, label: Title, widget: string, required: false },
+              { name: description, label: Description, widget: text, required: false }
+            ] }
+
+      - name: contact
+        label: Contact
+        file: src/content/pages/contact.md
+        fields:
+          - { name: address_line1, label: Address line 1, widget: string }
+          - { name: address_line2, label: Address line 2, widget: string }
+          - { name: phones, label: Phone numbers, widget: list, field: { name: phone, label: Phone, widget: string } }
+          - { name: fax, label: Fax, widget: string, required: false }
+          - { name: email, label: Email, widget: string }
+          - { name: map_lat, label: Map latitude, widget: number, value_type: float, step: 0.0001 }
+          - { name: map_lng, label: Map longitude, widget: number, value_type: float, step: 0.0001 }
+          - { name: map_zoom, label: Map zoom (1–19), widget: number, value_type: int, default: 15, min: 1, max: 19 }
+          - { name: form_intro, label: Form intro paragraph, widget: text }
+          - { name: seo, label: SEO, widget: object, required: false, fields: [
+              { name: title, label: Title, widget: string, required: false },
+              { name: description, label: Description, widget: text, required: false }
+            ] }
+
+      - name: privacy
+        label: Privacy policy
+        file: src/content/pages/privacy.md
+        fields:
+          - { name: title, label: Title, widget: string }
+          - { name: last_updated, label: Last updated (YYYY-MM-DD), widget: string }
+          - { name: body, label: Body, widget: markdown }
+          - { name: seo, label: SEO, widget: object, required: false, fields: [
+              { name: title, label: Title, widget: string, required: false },
+              { name: description, label: Description, widget: text, required: false }
+            ] }
+
+  - name: products
+    label: Product categories
+    folder: src/content/products
+    extension: md
+    format: yaml-frontmatter
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    summary: "{{order}} — {{title}}"
+    fields:
+      - { name: order, label: Display order, widget: number, value_type: int, hint: "Lower numbers appear first." }
+      - { name: title, label: Title, widget: string }
+      - { name: description, label: Description, widget: text }
+      - name: gallery
+        label: Gallery
+        widget: list
+        fields:
+          - { name: src, label: Image, widget: image }
+          - { name: alt, label: Alt text, widget: string }
+      - { name: notes, label: Notes (small italic text under the description), widget: string, required: false }

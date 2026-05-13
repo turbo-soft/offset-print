@@ -1,0 +1,55 @@
+---
+interface MetadataItem {
+  label: string;
+  value: string;
+}
+interface Props {
+  image: string;
+  alt: string;
+  tagline: string;
+  metadata?: MetadataItem[];
+}
+const { image, alt, tagline, metadata = [] } = Astro.props;
+---
+<section class="relative">
+  <div class="relative h-[65vh] min-h-[440px] md:h-[80vh] md:min-h-[560px] overflow-hidden">
+    <img
+      src={image}
+      alt={alt}
+      class="absolute inset-0 w-full h-full object-cover"
+      loading="eager"
+      decoding="async"
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent"></div>
+    <div class="relative h-full mx-auto max-w-7xl px-6 flex flex-col justify-end pb-10 md:pb-16">
+      <div class="label mb-3 md:mb-4">// FSC® Certified · since 1990</div>
+      <h1 class="heading text-paper text-4xl sm:text-5xl md:text-7xl max-w-3xl">
+        {tagline}
+      </h1>
+      <div class="mt-6 md:mt-8 flex flex-wrap gap-3">
+        <a href="/products/" class="pill text-sm">
+          See our products
+          <span aria-hidden="true">→</span>
+        </a>
+        <a
+          href="/contact/"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-paper text-paper hover:bg-paper hover:text-ink transition-colors text-sm font-semibold heading"
+        >
+          Get a quote
+        </a>
+      </div>
+    </div>
+  </div>
+  {metadata.length > 0 && (
+    <div class="section-brand">
+      <div class="mx-auto max-w-7xl px-6 py-5 md:py-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 font-mono text-xs md:text-sm">
+        {metadata.map((item) => (
+          <div class="flex items-center gap-2">
+            <span class="label text-ink/60">{item.label}</span>
+            <span class="heading text-sm md:text-base">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+</section>

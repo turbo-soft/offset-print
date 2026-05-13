@@ -1,0 +1,39 @@
+---
+import { getEntry, getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import ProductCategory from "../components/ProductCategory.astro";
+import Lightbox from "../components/Lightbox.astro";
+
+const page = await getEntry("products", "products");
+if (!page) throw new Error("Missing content/pages/products.md");
+const cats = (await getCollection("productCategories")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+---
+<Base
+  title={page.data.seo?.title ?? "Products — Offset Print d.o.o."}
+  description={page.data.seo?.description}
+>
+  <section class="border-b border-rule">
+    <div class="mx-auto max-w-7xl px-6 py-12 md:py-16 grid md:grid-cols-12 gap-6">
+      <div class="md:col-span-4">
+        <p class="label mb-3">// 03 / Products</p>
+      </div>
+      <div class="md:col-span-8">
+        <h1 class="heading text-4xl sm:text-5xl md:text-7xl">{page.data.intro_heading}</h1>
+        <p class="text-lg md:text-xl text-ink-muted leading-relaxed mt-5 md:mt-6 max-w-2xl">{page.data.intro_text}</p>
+        <span class="inline-block pill text-xs mt-5 md:mt-6">{page.data.fsc_callout}</span>
+      </div>
+    </div>
+  </section>
+  {cats.map((c) => (
+    <ProductCategory
+      index={c.data.order}
+      title={c.data.title}
+      description={c.data.description}
+      gallery={c.data.gallery}
+      notes={c.data.notes}
+    />
+  ))}
+  <Lightbox />
+</Base>

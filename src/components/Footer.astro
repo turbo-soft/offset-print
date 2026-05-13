@@ -1,0 +1,66 @@
+---
+import { getEntry } from "astro:content";
+const contact = await getEntry("contact", "contact");
+const year = new Date().getFullYear();
+---
+<footer class="mt-24">
+  <div class="section-brand">
+    <div class="mx-auto max-w-7xl px-6 py-10 md:py-14 grid gap-6 md:gap-8 md:grid-cols-3 items-center">
+      <div class="md:col-span-2">
+        <div class="heading text-3xl md:text-4xl">Let's print something good.</div>
+        <p class="text-ink/80 mt-2 text-sm">
+          Cardboard packaging, corrugated boxes, paper labels — finished to spec, FSC® certified.
+        </p>
+      </div>
+      <div>
+        <a href="/contact/" class="pill text-sm bg-ink text-paper hover:bg-paper hover:text-ink">
+          Get a quote
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="bg-paper border-t border-rule">
+    <div class="mx-auto max-w-7xl px-6 py-8 md:py-10 grid grid-cols-12 gap-6 text-sm">
+      <div class="col-span-12 md:col-span-3">
+        <div class="label mb-2">// Address</div>
+        <div class="heading text-base mb-1">Offset Print d.o.o.</div>
+        <div class="text-ink-muted">
+          {contact?.data.address_line1}<br />
+          {contact?.data.address_line2}
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-3">
+        <div class="label mb-2">// Telecom</div>
+        <ul class="font-mono text-xs space-y-1">
+          {contact?.data.phones.map((p) => (
+            <li><a href={`tel:${p.replace(/\s+/g, "")}`}>{p}</a></li>
+          ))}
+          <li><a href={`mailto:${contact?.data.email}`}>{contact?.data.email}</a></li>
+        </ul>
+      </div>
+      <div class="col-span-12 md:col-span-3">
+        <div class="label mb-2">// Certifications</div>
+        <ul class="font-mono text-xs space-y-1">
+          <li>FSC® C134886</li>
+          <li>ISO 9001 / 14001 / 45001:2018</li>
+          <li>SMETA SEDEX</li>
+        </ul>
+      </div>
+      <div class="col-span-12 md:col-span-3">
+        <div class="label mb-2">// Capacity</div>
+        <ul class="font-mono text-xs space-y-1">
+          <li>4,000 m² facility</li>
+          <li>57 staff (2021)</li>
+          <li>EST. 1990</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="bg-paper border-t border-rule">
+    <div class="mx-auto max-w-7xl px-6 py-3 flex justify-between label text-ink-muted">
+      <span>© {year} Offset Print d.o.o.</span>
+      <a href="/privacy/">Privacy</a>
+    </div>
+  </div>
+</footer>

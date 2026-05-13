@@ -1,0 +1,188 @@
+---
+import { getEntry } from "astro:content";
+const contact = await getEntry("contact", "contact");
+
+const nav = [
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about/" },
+  { label: "Products", href: "/products/" },
+  { label: "Contact", href: "/contact/" },
+];
+const here = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === "/" ? here === "/" : here.startsWith(href);
+---
+<header class="bg-paper sticky top-0 z-30 border-b border-rule">
+  <div class="mx-auto max-w-7xl px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-3 md:gap-4" aria-label="Offset Print — home">
+      <img
+        src="/uploads/logo.jpg"
+        alt=""
+        width="160"
+        height="98"
+        class="h-10 md:h-14 w-auto mix-blend-multiply"
+      />
+      <div class="flex flex-col leading-tight">
+        <span class="heading text-base md:text-xl">Offset Print</span>
+        <span class="label hidden md:inline mt-0.5">Novi Sad / EST. 1990</span>
+      </div>
+    </a>
+
+    <nav aria-label="Main" class="hidden md:block">
+      <ul class="flex gap-7 label">
+        {nav.map(({ label, href }) => (
+          <li>
+            <a
+              href={href}
+              class:list={[
+                "py-1 transition-colors",
+                isActive(href) ? "text-ink border-b-2 border-accent" : "text-ink-muted hover:text-ink",
+              ]}
+              aria-current={isActive(href) ? "page" : undefined}
+            >{label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <a href="/contact/" class="pill text-sm hidden md:inline-flex">
+      Get a quote
+      <span aria-hidden="true">→</span>
+    </a>
+
+    <button
+      type="button"
+      data-menu-toggle
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      class="md:hidden grid place-items-center size-10 rounded-full text-ink hover:bg-rule transition-colors"
+    >
+      <span class="sr-only">Open menu</span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h18M3 12h18M3 18h18" />
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div
+  id="mobile-menu"
+  data-menu
+  data-open="false"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Mobile navigation"
+  class="fixed inset-0 z-50 bg-accent text-ink overflow-y-auto opacity-0 pointer-events-none transition-opacity duration-200 data-[open=true]:opacity-100 data-[open=true]:pointer-events-auto md:hidden"
+>
+  <div class="px-6 pt-5 pb-10 min-h-full flex flex-col">
+    <div class="flex justify-between items-center gap-4">
+      <a href="/" class="flex items-center gap-3" aria-label="Offset Print — home">
+        <img
+          src="/uploads/logo.jpg"
+          alt=""
+          width="160"
+          height="98"
+          class="h-10 w-auto mix-blend-multiply"
+        />
+        <span class="heading text-lg">Offset Print</span>
+      </a>
+      <button
+        type="button"
+        data-menu-close
+        class="grid place-items-center size-10 rounded-full text-ink hover:bg-ink hover:text-paper transition-colors"
+        aria-label="Close menu"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6l-12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <nav aria-label="Mobile main" class="mt-10">
+      <ul class="space-y-4 heading text-4xl">
+        {nav.map(({ label, href }) => (
+          <li>
+            <a
+              href={href}
+              class:list={[
+                "block transition-colors",
+                isActive(href) ? "text-ink underline decoration-ink decoration-4 underline-offset-8" : "text-ink hover:text-ink/70",
+              ]}
+              aria-current={isActive(href) ? "page" : undefined}
+            >{label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="mt-auto pt-10 space-y-5 font-mono text-sm">
+      <ul class="space-y-1">
+        {contact?.data.phones.map((p) => (
+          <li><a href={`tel:${p.replace(/\s+/g, "")}`} class="hover:underline">{p}</a></li>
+        ))}
+        <li><a href={`mailto:${contact?.data.email}`} class="hover:underline">{contact?.data.email}</a></li>
+      </ul>
+      <a href="/contact/" data-menu-cta class="pill bg-ink text-paper hover:bg-paper hover:text-ink">
+        Get a quote
+        <span aria-hidden="true">→</span>
+      </a>
+      <p class="text-ink/70 leading-relaxed">
+        {contact?.data.address_line1}<br />
+        {contact?.data.address_line2}
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const menu = document.querySelector<HTMLElement>("[data-menu]");
+  const closeBtn = menu?.querySelector<HTMLButtonElement>("[data-menu-close]");
+
+  if (toggle && menu) {
+    const setOpen = (open: boolean) => {
+      menu.dataset.open = String(open);
+      toggle.setAttribute("aria-expanded", String(open));
+      document.body.style.overflow = open ? "hidden" : "";
+      if (open) {
+        const firstLink = menu.querySelector<HTMLAnchorElement>("nav a");
+        firstLink?.focus();
+      } else {
+        toggle.focus();
+      }
+    };
+
+    toggle.addEventListener("click", () => setOpen(true));
+    closeBtn?.addEventListener("click", () => setOpen(false));
+
+    menu.querySelectorAll<HTMLAnchorElement>("nav a, [data-menu-cta]").forEach((link) => {
+      link.addEventListener("click", () => setOpen(false));
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && menu.dataset.open === "true") setOpen(false);
+    });
+
+    const mq = window.matchMedia("(min-width: 768px)");
+    mq.addEventListener("change", () => {
+      if (mq.matches && menu.dataset.open === "true") setOpen(false);
+    });
+
+    menu.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab" || menu.dataset.open !== "true") return;
+      const focusable = Array.from(
+        menu.querySelectorAll<HTMLElement>('a, button, [tabindex]:not([tabindex="-1"])')
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  }
+</script>

@@ -1,0 +1,79 @@
+---
+const accessKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? "REPLACE_ME_WEB3FORMS_KEY";
+---
+<form
+  action="https://api.web3forms.com/submit"
+  method="POST"
+  class="space-y-5"
+  data-form
+>
+  <input type="hidden" name="access_key" value={accessKey} />
+  <input type="hidden" name="subject" value="New enquiry from offsetprint.eu" />
+  <input type="hidden" name="from_name" value="offsetprint.eu" />
+  <input type="checkbox" name="botcheck" class="hidden" tabindex="-1" autocomplete="off" />
+
+  <label class="block">
+    <span class="block text-sm font-medium mb-1">Your name</span>
+    <input
+      type="text"
+      name="name"
+      required
+      autocomplete="name"
+      class="w-full border border-rule bg-paper px-3 py-2 focus:border-ink outline-none"
+    />
+  </label>
+
+  <label class="block">
+    <span class="block text-sm font-medium mb-1">Email</span>
+    <input
+      type="email"
+      name="email"
+      required
+      autocomplete="email"
+      class="w-full border border-rule bg-paper px-3 py-2 focus:border-ink outline-none"
+    />
+  </label>
+
+  <label class="block">
+    <span class="block text-sm font-medium mb-1">Message</span>
+    <textarea
+      name="message"
+      rows="6"
+      required
+      class="w-full border border-rule bg-paper px-3 py-2 focus:border-ink outline-none"
+    ></textarea>
+  </label>
+
+  <button type="submit" class="px-6 py-3 bg-ink text-paper text-sm hover:bg-accent transition-colors">
+    Send message
+  </button>
+
+  <p class="hidden text-sm text-accent" data-error>Something went wrong. Please email us directly.</p>
+  <p class="hidden text-sm" data-success>Thanks — your message was sent. We'll be in touch.</p>
+</form>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("form[data-form]");
+  if (form) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const okEl = form.querySelector<HTMLElement>("[data-success]");
+      const errEl = form.querySelector<HTMLElement>("[data-error]");
+      okEl?.classList.add("hidden");
+      errEl?.classList.add("hidden");
+      const data = new FormData(form);
+      try {
+        const res = await fetch(form.action, {
+          method: "POST",
+          body: data,
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        form.reset();
+        okEl?.classList.remove("hidden");
+      } catch {
+        errEl?.classList.remove("hidden");
+      }
+    });
+  }
+</script>

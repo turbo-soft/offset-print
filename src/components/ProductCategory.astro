@@ -1,0 +1,154 @@
+---
+interface GalleryItem { src: string; alt: string }
+interface Props {
+  index: number;
+  title: string;
+  description: string;
+  gallery: GalleryItem[];
+  notes?: string;
+}
+const { index, title, description, gallery, notes } = Astro.props;
+const num = String(index).padStart(2, "0");
+---
+<section class="border-t border-rule py-12 md:py-16">
+  <div class="mx-auto max-w-6xl px-6 grid md:grid-cols-3 gap-6 md:gap-10 items-start">
+    <div class="md:col-span-1 space-y-4">
+      <div class="flex items-baseline gap-3">
+        <span class="heading text-accent-warm text-5xl leading-none">{num}</span>
+        <span class="label">/ Product</span>
+      </div>
+      <h2 class="heading text-3xl md:text-4xl">{title}</h2>
+      <p class="text-ink-muted leading-relaxed">{description}</p>
+      <ul class="font-mono text-xs space-y-1 pt-2 border-t border-rule">
+        <li><span class="label mr-2">FINISH</span>Varnish · 2D/3D foil · Braille</li>
+        <li><span class="label mr-2">CERT</span>FSC® C134886</li>
+      </ul>
+      {notes && <p class="text-sm text-ink-muted italic">{notes}</p>}
+    </div>
+
+    <div
+      class="md:col-span-2 relative group"
+      data-slider
+      aria-roledescription="carousel"
+      aria-label={`${title} gallery`}
+    >
+      <div
+        class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden rounded-xl"
+        data-track
+        tabindex="0"
+      >
+        {gallery.map((g, i) => (
+          <figure
+            class="snap-start shrink-0 basis-full overflow-hidden aspect-[16/10] bg-rule rounded-xl"
+            aria-roledescription="slide"
+            aria-label={`${i + 1} of ${gallery.length}`}
+          >
+            <button
+              type="button"
+              data-zoom
+              class="block w-full h-full cursor-zoom-in"
+              aria-label={`View ${g.alt} larger`}
+            >
+              <img
+                src={g.src}
+                alt={g.alt}
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
+                class="w-full h-full object-cover"
+              />
+            </button>
+          </figure>
+        ))}
+      </div>
+
+      {gallery.length > 1 && (
+        <>
+          <button
+            type="button"
+            data-prev
+            class="hidden md:grid absolute left-3 top-1/2 -translate-y-1/2 place-items-center transition opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed size-11 rounded-full bg-accent text-ink shadow-lg hover:bg-paper"
+            aria-label="Previous image"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            data-next
+            class="hidden md:grid absolute right-3 top-1/2 -translate-y-1/2 place-items-center transition opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed size-11 rounded-full bg-accent text-ink shadow-lg hover:bg-paper"
+            aria-label="Next image"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+
+          <div class="mt-4 flex justify-center gap-2" data-dots>
+            {gallery.map((_, i) => (
+              <button
+                type="button"
+                data-dot={i}
+                class="size-2 rounded-full bg-rule data-[active]:bg-accent transition-colors"
+                aria-label={`Go to image ${i + 1}`}
+              />
+            ))}
+          </div>
+
+          <div class="sr-only" aria-live="polite" data-status></div>
+        </>
+      )}
+    </div>
+  </div>
+</section>
+
+<script>
+  const sliders = document.querySelectorAll<HTMLElement>('[data-slider]');
+  sliders.forEach((root) => {
+    const track = root.querySelector<HTMLElement>('[data-track]');
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = root.querySelector<HTMLButtonElement>('[data-next]');
+    const dots = root.querySelectorAll<HTMLButtonElement>('[data-dot]');
+    const status = root.querySelector<HTMLElement>('[data-status]');
+    if (!track) return;
+
+    const slides = Array.from(track.children) as HTMLElement[];
+    if (slides.length <= 1) return;
+
+    const update = () => {
+      const i = Math.round(track.scrollLeft / track.clientWidth);
+      dots.forEach((d, di) => {
+        if (di === i) d.setAttribute('data-active', '');
+        else d.removeAttribute('data-active');
+      });
+      if (prev) prev.disabled = i <= 0;
+      if (next) next.disabled = i >= slides.length - 1;
+      if (status) status.textContent = `Image ${i + 1} of ${slides.length}`;
+    };
+
+    const go = (delta: number) => {
+      track.scrollBy({ left: track.clientWidth * delta, behavior: 'smooth' });
+    };
+
+    prev?.addEventListener('click', () => go(-1));
+    next?.addEventListener('click', () => go(1));
+    dots.forEach((d, i) =>
+      d.addEventListener('click', () => {
+        track.scrollTo({ left: track.clientWidth * i, behavior: 'smooth' });
+      }),
+    );
+
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+    });
+
+    let raf = 0;
+    track.addEventListener('scroll', () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    });
+
+    update();
+  });
+</script>

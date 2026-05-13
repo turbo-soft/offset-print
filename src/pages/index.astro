@@ -1,0 +1,49 @@
+---
+import { getEntry } from "astro:content";
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+
+const home = await getEntry("home", "home");
+if (!home) throw new Error("Missing content/pages/home.md");
+const { data } = home;
+---
+<Base
+  title={data.seo?.title ?? "Offset Print d.o.o."}
+  description={data.seo?.description}
+  ogImage={data.seo?.og_image ?? data.hero_image}
+>
+  <Hero
+    image={data.hero_image}
+    alt={data.hero_image_alt}
+    tagline={data.hero_tagline}
+    metadata={data.hero_metadata}
+  />
+
+  <section class="border-b border-rule">
+    <div class="mx-auto max-w-7xl px-6 py-14 md:py-20 grid md:grid-cols-12 gap-6">
+      <div class="md:col-span-4">
+        <p class="label mb-3">// {data.intro_subheading}</p>
+        <h2 class="heading text-3xl sm:text-4xl md:text-5xl">{data.intro_heading}</h2>
+      </div>
+      <div class="md:col-span-8 md:pl-8 md:border-l md:border-rule">
+        <p class="text-lg md:text-xl leading-relaxed mb-6 md:mb-8">{data.intro_body}</p>
+        <ul class="flex flex-wrap gap-3">
+          {data.cta_links.map((cta, i) => (
+            <li>
+              <a
+                href={cta.href}
+                class:list={[
+                  "inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors heading",
+                  i === 0 ? "pill" : "border border-ink text-ink hover:bg-ink hover:text-paper",
+                ]}
+              >
+                {cta.label}
+                <span aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>

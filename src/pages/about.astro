@@ -1,0 +1,117 @@
+---
+import { getEntry } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const about = await getEntry("about", "about");
+if (!about) throw new Error("Missing content/pages/about.md");
+const { data } = about;
+---
+<Base
+  title={data.seo?.title ?? "About — Offset Print d.o.o."}
+  description={data.seo?.description}
+  ogImage={data.seo?.og_image ?? data.hero_image}
+>
+  <section class="border-b border-rule">
+    <div class="mx-auto max-w-7xl px-6 pt-10 md:pt-12 pb-6 md:pb-8 grid md:grid-cols-12 gap-6">
+      <div class="md:col-span-4">
+        <p class="label mb-3">// 02 / About</p>
+      </div>
+      <div class="md:col-span-8">
+        <h1 class="heading text-4xl sm:text-5xl md:text-7xl">{data.history_heading}</h1>
+      </div>
+    </div>
+  </section>
+
+  <section class="border-b border-rule">
+    <div class="mx-auto max-w-7xl px-6 py-12 md:py-16 grid md:grid-cols-12 gap-6">
+      <div class="md:col-span-4">
+        <p class="label mb-3">// Quote</p>
+        {data.intro_quote && (
+          <blockquote class="border-l-4 border-accent-warm pl-5 italic text-lg">
+            <p>{data.intro_quote}</p>
+            {data.intro_quote_author && (
+              <footer class="not-italic label mt-3">— {data.intro_quote_author}</footer>
+            )}
+          </blockquote>
+        )}
+      </div>
+      <div class="md:col-span-8 md:pl-8 md:border-l md:border-rule space-y-6 text-base md:text-lg leading-relaxed">
+        <p>{data.history_text}</p>
+        <p>{data.facility_text}</p>
+        <p>{data.env_text}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-brand">
+    <div class="mx-auto max-w-7xl px-6 py-10 md:py-12 grid grid-cols-3 gap-3 md:gap-6 text-center">
+      <div>
+        <div class="heading text-3xl sm:text-4xl md:text-6xl">{data.staff_count}</div>
+        <div class="label text-ink/70 mt-1">Staff</div>
+      </div>
+      <div>
+        <div class="heading text-3xl sm:text-4xl md:text-6xl">4,000</div>
+        <div class="label text-ink/70 mt-1">m² facility</div>
+      </div>
+      <div>
+        <div class="heading text-3xl sm:text-4xl md:text-6xl">1990</div>
+        <div class="label text-ink/70 mt-1">Founded</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="border-b border-rule">
+    <div class="mx-auto max-w-7xl px-6 py-10 md:py-12 grid md:grid-cols-12 gap-6">
+      <div class="md:col-span-4">
+        <p class="label mb-3">// Standards</p>
+      </div>
+      <div class="md:col-span-5">
+        <ul class="grid grid-cols-2 gap-x-6 gap-y-2 font-mono text-sm">
+          {data.certifications.map((c) => <li class="border-b border-rule pb-2">{c}</li>)}
+        </ul>
+      </div>
+      <div class="md:col-span-3">
+        {data.hero_image && (
+          <figure class="text-center bg-paper border border-rule rounded-xl p-4">
+            <img
+              src={data.hero_image}
+              alt={data.hero_image_alt ?? ""}
+              class="mx-auto max-w-[140px]"
+              loading="lazy"
+            />
+            <figcaption class="label mt-2">FSC® C134886</figcaption>
+          </figure>
+        )}
+      </div>
+    </div>
+  </section>
+
+  {data.documents && data.documents.length > 0 && (
+    <section class="border-b border-rule">
+      <div class="mx-auto max-w-7xl px-6 py-10 md:py-12 grid md:grid-cols-12 gap-6">
+        <div class="md:col-span-4">
+          <p class="label mb-3">// Policy</p>
+          <h2 class="heading text-2xl md:text-3xl">{data.business_policy_heading ?? "Politika poslovanja"}</h2>
+        </div>
+        <div class="md:col-span-8">
+          <ul class="grid sm:grid-cols-2 gap-3">
+            {data.documents.map((d) => (
+              <li>
+                <a
+                  href={d.file}
+                  target="_blank"
+                  rel="noopener"
+                  class="flex items-center gap-3 bg-paper border border-rule rounded-xl p-4 hover:border-accent-warm hover:shadow transition-all"
+                >
+                  <span class="size-10 rounded-full bg-accent-warm text-paper grid place-items-center heading text-xs">PDF</span>
+                  <span class="font-semibold flex-1 heading">{d.label}</span>
+                  <span aria-hidden="true" class="text-accent-warm">↓</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )}
+</Base>

@@ -1,0 +1,88 @@
+name: Resize uploads
+
+# Backstop for CMS image uploads that bypassed Sveltia's client-side resize
+# (e.g. 12 MB iPhone photos). Runs on every push that touches public/uploads
+# and downsizes anything wider than MAX_WIDTH or larger than MAX_BYTES,
+# then commits the result back to the same branch.
+
+on:
+  push:
+    paths:
+      - 'public/uploads/**'
+
+permissions:
+  contents: write
+
+jobs:
+  resize:
+    runs-on: ubuntu-24.04
+    if: ${{ !contains(github.event.head_commit.message, '[resize-skip]') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Resize oversized images
+        env:
+          MAX_WIDTH: '2400'
+          MAX_BYTES: '524288'   # 512 KB target
+        run: |
+          node --input-type=module <<'EOF'
+          import { readdir, stat } from 'node:fs/promises';
+          import { join, extname } from 'node:path';
+          import sharp from 'sharp';
+
+          const MAX_WIDTH = parseInt(process.env.MAX_WIDTH, 10);
+          const MAX_BYTES = parseInt(process.env.MAX_BYTES, 10);
+          const exts = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
+
+          async function* walk(dir) {
+            for (const entry of await readdir(dir, { withFileTypes: true })) {
+              const p = join(dir, entry.name);
+              if (entry.isDirectory()) yield* walk(p);
+              else yield p;
+            }
+          }
+
+          let touched = 0;
+          for await (const file of walk('public/uploads')) {
+            if (!exts.has(extname(file).toLowerCase())) continue;
+            const { size } = await stat(file);
+            const meta = await sharp(file).metadata();
+            const tooWide = (meta.width ?? 0) > MAX_WIDTH;
+            const tooBig = size > MAX_BYTES;
+            if (!tooWide && !tooBig) continue;
+            const pipeline = sharp(file).rotate();
+            if (tooWide) pipeline.resize({ width: MAX_WIDTH });
+            const buf = await pipeline.webp({ quality: 82 }).toBuffer();
+            const out = file.replace(/\.(jpe?g|png|webp|avif)$/i, '.webp');
+            await sharp(buf).toFile(out + '.tmp');
+            await import('node:fs/promises').then(({ rename, unlink }) =>
+              rename(out + '.tmp', out).then(() =>
+                out !== file ? unlink(file) : null,
+              ),
+            );
+            console.log(`resized ${file} -> ${out} (${size} -> ${buf.length} bytes)`);
+            touched++;
+          }
+          console.log(`done; ${touched} file(s) touched`);
+          EOF
+
+      - name: Commit resized images
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No oversized images found."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/uploads
+          git commit -m "chore: resize oversized uploads [resize-skip]"
+          git push
